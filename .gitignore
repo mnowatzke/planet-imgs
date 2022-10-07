@@ -1,2 +1,3 @@
 config.toml
-data/demo
+data/imagery
+env

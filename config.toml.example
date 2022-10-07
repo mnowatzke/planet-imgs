@@ -1,4 +1,5 @@
 #planet API config
+#fill out and rename this file to config.toml
 
 [keys]
-api_key = "1234abcdexxxxxxxxxxx"
+planet_api_key = "1234abcdexxxxxxxxxxx"
