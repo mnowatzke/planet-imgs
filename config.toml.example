@@ -1,5 +1,14 @@
 #planet API config
-#fill out and rename this file to config.toml
+#!!rename this file to config.toml when finished!!
 
-[keys]
-planet_api_key = "1234abcdexxxxxxxxxxx"
+[api]
+planet_api_key = "mykey1234xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+orders_url = 'https://api.planet.com/data/v1/quick-search'
+item_type = "PSScene"
+image_type = "ortho_analytic_4b_sr"
+
+[filters]
+mask = "my_aoi.geojson"
+max_cloud = 0.1
+start_date = "2019-07-01"
+end_date = "2019-07-31"
