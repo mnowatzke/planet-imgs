@@ -1,2 +1,5 @@
 config.toml
-data/demo
+data/imagery
+data/masks
+data/thumbnails
+env
