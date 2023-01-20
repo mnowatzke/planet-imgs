@@ -1,5 +1,4 @@
 config.toml
-data/imagery
-data/masks
-data/thumbnails
+data/masks/*
+data/imagery/*
 env

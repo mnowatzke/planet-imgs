@@ -1,9 +1,12 @@
 #planet API config
+
 #!!rename this file to config.toml when finished!!
+
+[general]
+project_name = 'YourProjectName'
 
 [api]
 planet_api_key = "mykey1234xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-orders_url = 'https://api.planet.com/data/v1/quick-search'
 item_type = "PSScene"
 image_type = "ortho_analytic_4b_sr"
 
