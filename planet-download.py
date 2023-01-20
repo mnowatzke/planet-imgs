@@ -200,24 +200,24 @@ class PlanetImages:
             img_id = i['id']
             img_links = i['_links']
             # dwn_link = img_links['_self']
-            asset_url = f'https://api.planet.com/data/v1/item-types/{my_config.ITEM_TYPE}/items/{img_id}/assets'
+            asset_url = f'https://api.planet.com/data/v1/item-types/{self.config.ITEM_TYPE}/items/{img_id}/assets'
             try:
                 result = \
                 requests.get(
                     asset_url,
-                    auth=HTTPBasicAuth(my_config.API_KEY, '')
+                    auth=HTTPBasicAuth(self.config.API_KEY, '')
                 )
-                img_status = result.json()[f'{my_config.IMAGE_TYPE}']['status']
+                img_status = result.json()[f'{self.config.IMAGE_TYPE}']['status']
                 if img_status == 'inactive':
                     print(f'Image {img_id} is inactive. Attempting to activate.')
-                    links = result.json()[f'{my_config.IMAGE_TYPE}']["_links"]
+                    links = result.json()[f'{self.config.IMAGE_TYPE}']["_links"]
                     # self_link = links["_self"]
                     activation_link = links["activate"]
                     # Request activation of the 'analytic' asset:
                     activate_result = \
                     requests.get(
                         activation_link,
-                        auth=HTTPBasicAuth(my_config.API_KEY, '')
+                        auth=HTTPBasicAuth(self.config.API_KEY, '')
                     )
                 elif img_status == 'active':
                     print(f'Image {img_id} is already active.')
@@ -225,7 +225,7 @@ class PlanetImages:
                     print(f'Unknown status for image {img_id}')
                     self.imgs_to_download.remove(i)
             except KeyError:
-                print(f'Image type {my_config.IMAGE_TYPE} not available for {img_id}')
+                print(f'Image type {self.config.IMAGE_TYPE} not available for {img_id}')
                 print(f'Removing image {img_id} from download list.')
                 print(f'These other images are available for {img_id}: {result.json().keys()}')
                 self.imgs_to_download.remove(i)
@@ -243,9 +243,9 @@ class PlanetImages:
                 result = \
                     requests.get(
                         asset_url,
-                        auth=HTTPBasicAuth(my_config.API_KEY, '')
+                        auth=HTTPBasicAuth(self.config.API_KEY, '')
                     )
-                img_status = result.json()[f'{my_config.IMAGE_TYPE}']['status']   
+                img_status = result.json()[f'{self.config.IMAGE_TYPE}']['status']   
                 success_states = ['active']
                 if img_status == 'failed':
                     raise Exception()
@@ -269,21 +269,21 @@ class PlanetImages:
         for image in self.active_imgs:
             #go through all active images
             img_id = image['id']
-            asset_url = f'https://api.planet.com/data/v1/item-types/{my_config.ITEM_TYPE}/items/{img_id}/assets'
+            asset_url = f'https://api.planet.com/data/v1/item-types/{self.config.ITEM_TYPE}/items/{img_id}/assets'
             try:
                 #get the asset info
                 result = \
                 requests.get(
                     asset_url,
-                    auth=HTTPBasicAuth(my_config.API_KEY, '')
+                    auth=HTTPBasicAuth(self.config.API_KEY, '')
                 )
                 #get different _self link for these assets
-                links = result.json()[f'{my_config.IMAGE_TYPE}']['_links']
+                links = result.json()[f'{self.config.IMAGE_TYPE}']['_links']
                 self_link = links['_self']
                 self_req = \
                     requests.get(
                     self_link,
-                    auth=HTTPBasicAuth(my_config.API_KEY, '')
+                    auth=HTTPBasicAuth(self.config.API_KEY, '')
                 )
                 download_url = self_req.json()["location"]
                 img_req = requests.get(download_url, auth=HTTPBasicAuth(self.config.API_KEY, ''))
@@ -299,7 +299,6 @@ class PlanetImages:
 
 
 def main():
-    my_config = PlanetConfig()
     plan_imgs = PlanetImages()
     plan_imgs.get_all_avail_image_ids()
     plan_imgs.get_unique_image_dates()
