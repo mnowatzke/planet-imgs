@@ -1,13 +1,9 @@
 import os
-import errno
-import datetime
+# import errno
 import time
-from zipfile import ZipFile
 import json
-from pathlib import Path
 import tomli
 import geopandas as gpd
-import shapely
 import requests
 import rasterio as rio
 from requests.auth import HTTPBasicAuth
@@ -178,11 +174,10 @@ class PlanetImages:
         for image in thumb_imgs:
             with rio.open(image) as src:
                 b, g, r, nir = src.read()
-                b_mean = b.mean()
-                g_mean = g.mean()
+                # b_mean = b.mean()
+                # g_mean = g.mean()
                 r_mean = r.mean()
                 nir_mean = nir.mean()
-                # print(image, b_mean, g_mean, r_mean, nir_mean)
                 if nir_mean >= 100 and r_mean < 10:
                     print(f'{image} is possibly bad and/or corrupted. Double check before downloading.')
                 else:
@@ -236,7 +231,9 @@ class PlanetImages:
         count = 0
         while(count < num_loops):
             for i in self.imgs_to_download:
-                img_id = i['id']
+                ##TODO clean up request here to not repeat all images.
+                ##TODO make new list of inactive images to request from
+                # img_id = i['id']
                 img_links = i['_links']
                 asset_url = img_links['assets']
                 # self_link = img_links['_self']
@@ -270,32 +267,32 @@ class PlanetImages:
             #go through all active images
             img_id = image['id']
             asset_url = f'https://api.planet.com/data/v1/item-types/{self.config.ITEM_TYPE}/items/{img_id}/assets'
-            try:
-                #get the asset info
-                result = \
-                requests.get(
-                    asset_url,
-                    auth=HTTPBasicAuth(self.config.API_KEY, '')
-                )
-                #get different _self link for these assets
-                links = result.json()[f'{self.config.IMAGE_TYPE}']['_links']
-                self_link = links['_self']
-                self_req = \
+            downloaded_img = glob.glob(f'{self.img_dir}/{img_id}.tif')
+            if not downloaded_img:
+                try:
+                    #get the asset info
+                    result = \
                     requests.get(
-                    self_link,
-                    auth=HTTPBasicAuth(self.config.API_KEY, '')
-                )
-                download_url = self_req.json()["location"]
-                img_req = requests.get(download_url, auth=HTTPBasicAuth(self.config.API_KEY, ''))
-                downloaded_img = glob.glob(f'{self.img_dir}/{img_id}.tif')
-                if not downloaded_img:
+                        asset_url,
+                        auth=HTTPBasicAuth(self.config.API_KEY, '')
+                    )
+                    #get different _self link for these assets
+                    links = result.json()[f'{self.config.IMAGE_TYPE}']['_links']
+                    self_link = links['_self']
+                    self_req = \
+                        requests.get(
+                        self_link,
+                        auth=HTTPBasicAuth(self.config.API_KEY, '')
+                    )
+                    download_url = self_req.json()["location"]
+                    img_req = requests.get(download_url, auth=HTTPBasicAuth(self.config.API_KEY, ''))
+
                     print(f"Downloading image {img_id}.")
                     open(f'{self.img_dir}/{img_id}.tif', 'wb').write(img_req.content)
-                else:
-                    print(f'Image {img_id} already downloaded -- skipping.')
-                    pass
-            except:
-                print('Something went wrong.')
+                except:
+                    print('Something went wrong.')
+            else:
+                print(f'Image {img_id} already downloaded -- skipping.')
 
 
 def main():
