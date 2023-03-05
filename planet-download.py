@@ -27,7 +27,7 @@ class PlanetConfig:
             print("Use config.toml.example as a template.")
         match self.config:
             case {
-                "api": {"planet_api_key": str(), 'item_type': str(), 'image_type': str()},
+                "api": {"planet_api_key": str(), 'item_type': str(), 'image_type': str(), 'unique_image_dates_only': str()},
                 "filters": {"mask": str(), 'max_cloud': float(), 'start_date': str(), 'end_date': str()},
             }:
                 pass
@@ -38,6 +38,7 @@ class PlanetConfig:
         self.SEARCH_URL = 'https://api.planet.com/data/v1/quick-search'
         self.ITEM_TYPE = self.config['api']['item_type']
         self.IMAGE_TYPE = self.config['api']['image_type']
+        self.unique_dates_only = self.config['api']['unique_image_dates_only']
         self.project_name = self.config['general']['project_name']
         self.auth = HTTPBasicAuth(self.API_KEY, '')
         self.mask = self.config['filters']['mask']
@@ -130,28 +131,40 @@ class PlanetImages:
         print(f'There are {len(self.image_ids)} total images available to download.')
         return self.image_ids
     
-    def get_unique_image_dates(self) -> list:
+    def get_image_list(self) -> list:
         image_json = self.search_for_images()
         self.image_list = []
         self.unique_dates = []
         #loop through all images, get unique date, and return image info/feature info
-        for feature in image_json['features']:
-            image_id = feature['id']
-            date = image_id[0:8]
-            if date not in self.unique_dates:
-                self.unique_dates.append(date)
-                self.image_list.append(feature)
+        if self.config.unique_dates_only == 'True':
+            for feature in image_json['features']:
+                image_id = feature['id']
+                #check if image has been downloaded already
+                downloaded_img = glob.glob(f'{self.img_dir}/{image_id}.tif')
+                if not downloaded_img:
+                    date = image_id[0:8]
+                    if date not in self.unique_dates:
+                        self.unique_dates.append(date)
+                        self.image_list.append(feature)
+                else:
+                    print(f'Skipping image {image_id} -- already downloaded')
+        else:
+            #check if image downloaded and download all remaining images
+            for feature in image_json['features']:
+                image_id = feature['id']
+                downloaded_img = glob.glob(f'{self.img_dir}/{image_id}.tif')
+                if not downloaded_img:
+                    self.image_list.append(feature)
+                else:
+                    print(f'Skipping image {image_id} -- already downloaded')
         num_images = len(self.image_list)
         if num_images != 0:
-            print(f'There are {num_images} unique image dates for download.')
             return self.image_list
         else:
             raise ValueError("Image list is empty. Try a new date, location, or filters.")
 
     def download_image_thumbnails(self) -> None:
         image_list = self.image_list
-        img_total = len(image_list)
-        counter = 0
         if not os.path.exists(self.thumb_dir):
             os.makedirs(self.thumb_dir)
         for image in image_list:
@@ -164,9 +177,6 @@ class PlanetImages:
                 open(f'{self.thumb_dir}/{img_id}.tif', 'wb').write(thumb_req.content)
             else:
                 pass
-            # print(feature['_links']['thumbnail'])
-            # counter += 1
-        # return(image_list)
 
     def filter_images_for_quality(self) -> list:
         thumb_imgs = glob.glob(f'{self.thumb_dir}/*.tif')
@@ -298,7 +308,7 @@ class PlanetImages:
 def main():
     plan_imgs = PlanetImages()
     plan_imgs.get_all_avail_image_ids()
-    plan_imgs.get_unique_image_dates()
+    plan_imgs.get_image_list()
     plan_imgs.download_image_thumbnails()
     plan_imgs.filter_images_for_quality()
     plan_imgs.get_imgs_to_download()
