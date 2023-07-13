@@ -9,9 +9,16 @@ project_name = 'YourProjectName'
 planet_api_key = "mykey1234xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 item_type = "PSScene"
 image_type = "ortho_analytic_4b_sr"
+unique_image_dates_only = 'False'
 
 [filters]
 mask = "my_aoi.geojson"
 max_cloud = 0.1
 start_date = "2019-07-01"
 end_date = "2019-07-31"
+
+[img_indices]
+img_folder = "data/imagery/Sievers/2018-07-01_2018-07-31"
+# veg index options are green chlorophyll index "gci" 
+# or normalized difference vegetation index "ndvi"
+veg_index = "gci"
